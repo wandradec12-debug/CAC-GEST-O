@@ -8,18 +8,18 @@ function F({label,name,type='text',required=false,form,setForm}){return <label><
 function formatDateBR(value){
   if(!value)return '';
   const raw=String(value).trim();
-  const iso=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+  const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(iso)return `${iso[3]}/${iso[2]}/${iso[1]}`;
-  const br=raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  const br=raw.match(/^(\d{2})\\/(\d{2})\\/(\d{4})$/);
   if(br)return raw;
   return '';
 }
 function formatDateInput(value){
   if(!value)return '';
   const raw=String(value).trim();
-  const iso=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+  const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(iso)return `${iso[1]}-${iso[2]}-${iso[3]}`;
-  const br=raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  const br=raw.match(/^(\d{2})\\/(\d{2})\\/(\d{4})$/);
   return br ? `${br[3]}-${br[2]}-${br[1]}` : '';
 }
 function gerarDeclaracao(detail){
