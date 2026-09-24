@@ -46,22 +46,33 @@ function gerarDeclaracao(detail){
   const estado=(detail.estado||'').toUpperCase();
   const rg=detail.rg||'';
   const cpf=detail.cpf_cnpj||'';
-  const w=window.open('','_blank','width=900,height=900');
-  if(!w)return;
-  const esc=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>DECLARAÇÃO DE INEXISTÊNCIA DE INQUÉRITOS POLICIAIS OU PROCESSOS CRIMINAIS</title><style>body{font-family:"Times New Roman",serif;color:#000;margin:70px 80px;font-size:16px;line-height:1.55}h1{text-align:center;font-size:17px;margin:0 0 36px;font-weight:700}p{margin:0 0 18px;text-align:justify}.art{margin-top:30px}.validade{margin-top:28px}.local{margin-top:28px}.assinatura{text-align:center;margin-top:42px}.cpf{text-align:center;margin-top:4px}@media print{body{margin:45px 60px}}</style></head><body>');
-  w.document.write('<h1>DECLARAÇÃO DE INEXISTÊNCIA DE INQUÉRITOS POLICIAIS OU<br>PROCESSOS CRIMINAIS</h1>');
-  w.document.write('<p>Eu, <strong>'+esc(nome)+'</strong>, BRASILEIRO, natural de <strong>'+esc(naturalidade)+'</strong>, nascido em <strong>'+esc(nascimento)+'</strong>, filho(a) de <strong>'+esc(pai)+'</strong> e <strong>'+esc(mae)+'</strong>, <strong>'+esc(estadoCivil)+'</strong> residência no(a), <strong>'+esc(endereco)+'</strong>, CEP <strong>'+esc(cep)+'</strong>, '+esc(cidade)+' - '+esc(estado)+' RG nº <strong>'+esc(rg)+'</strong>, declaro, sob as penas da lei, que não respondo a inquéritos policiais nem a processos criminais no estado de domicílio e nos entes federativos, e estou ciente de que, em caso de falsidade ideológica, ficarei sujeito às sanções prescritas no Código Penal e às demais cominações legais aplicáveis.</p>');
-  w.document.write('<p class="art">Art. 299 - Omitir, em documento público ou particular, declaração que nele deveria constar, ou nele inserir ou fazer inserir declaração falsa ou diversa da que devia ser escrita, com o fim de prejudicar direito, criar obrigação ou alterar a verdade sobre o fato juridicamente relevante.</p>');
-  w.document.write('<p>Pena - reclusão de 1 (um) a 5 (cinco) anos e multa, se o documento é público e reclusão de 1 (um) a 3 (três) anos, se o documento é particular.</p>');
-  w.document.write('<p class="validade">Esta declaração tem validade até a data: 20/12/2026</p>');
-  w.document.write('<p class="local">Salvador- BA, 21 de setembro de 2026</p>');
-  w.document.write('<p class="assinatura"><strong>'+esc(nome)+'</strong></p>');
-  w.document.write('<p class="cpf">CPF Nº '+esc(cpf)+'</p>');
-  w.document.write('</body></html>');
-  w.document.close();
-  w.focus();
-  setTimeout(()=>w.print(),300);
+  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  if(!nome){
+    alert('Não foi possível gerar a declaração: nome do cliente não informado.');
+    return;
+  }
+  if(!nascimento){
+    alert('Não foi possível gerar a declaração: data de nascimento não informada ou inválida.');
+    return;
+  }
+  const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>DECLARAÇÃO DE INEXISTÊNCIA DE INQUÉRITOS POLICIAIS OU PROCESSOS CRIMINAIS</title><style>body{font-family:"Times New Roman",serif;color:#000;margin:70px 80px;font-size:16px;line-height:1.55}h1{text-align:center;font-size:17px;margin:0 0 36px;font-weight:700}p{margin:0 0 18px;text-align:justify}.art{margin-top:30px}.validade{margin-top:28px}.local{margin-top:28px}.assinatura{text-align:center;margin-top:42px}.cpf{text-align:center;margin-top:4px}@media print{body{margin:45px 60px}}</style></head><body>'+
+    '<h1>DECLARAÇÃO DE INEXISTÊNCIA DE INQUÉRITOS POLICIAIS OU<br>PROCESSOS CRIMINAIS</h1>'+
+    '<p>Eu, <strong>'+esc(nome)+'</strong>, BRASILEIRO, natural de <strong>'+esc(naturalidade)+'</strong>, nascido em <strong>'+esc(nascimento)+'</strong>, filho(a) de <strong>'+esc(pai)+'</strong> e <strong>'+esc(mae)+'</strong>, <strong>'+esc(estadoCivil)+'</strong> residência no(a), <strong>'+esc(endereco)+'</strong>, CEP <strong>'+esc(cep)+'</strong>, '+esc(cidade)+' - '+esc(estado)+' RG nº <strong>'+esc(rg)+'</strong>, declaro, sob as penas da lei, que não respondo a inquéritos policiais nem a processos criminais no estado de domicílio e nos entes federativos, e estou ciente de que, em caso de falsidade ideológica, ficarei sujeito às sanções prescritas no Código Penal e às demais cominações legais aplicáveis.</p>'+
+    '<p class="art">Art. 299 - Omitir, em documento público ou particular, declaração que nele deveria constar, ou nele inserir ou fazer inserir declaração falsa ou diversa da que devia ser escrita, com o fim de prejudicar direito, criar obrigação ou alterar a verdade sobre o fato juridicamente relevante.</p>'+
+    '<p>Pena - reclusão de 1 (um) a 5 (cinco) anos e multa, se o documento é público e reclusão de 1 (um) a 3 (três) anos, se o documento é particular.</p>'+
+    '<p class="validade">Esta declaração tem validade até a data: 20/12/2026</p>'+
+    '<p class="local">Salvador- BA, 21 de setembro de 2026</p>'+
+    '<p class="assinatura"><strong>'+esc(nome)+'</strong></p>'+
+    '<p class="cpf">CPF Nº '+esc(cpf)+'</p>'+
+    '<script>window.addEventListener("load",function(){setTimeout(function(){window.print()},250)})<\/script>'+
+    '</body></html>';
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));
+  const w=window.open(url,'_blank','width=900,height=900');
+  if(!w){
+    window.location.href=url;
+  }else{
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  }
 }
 
 function App(){const[token,setToken]=useState(localStorage.getItem('token'));const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[dash,setDash]=useState(null);const[clientes,setClientes]=useState([]);const[show,setShow]=useState(false);const[detail,setDetail]=useState(null);const[form,setForm]=useState(empty);const[editing,setEditing]=useState(false);const[erro,setErro]=useState('');const[ok,setOk]=useState('');
