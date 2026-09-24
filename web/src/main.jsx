@@ -20,15 +20,15 @@ function getDateParts(value){
 }
 function formatDateBR(value){
   const p=getDateParts(value);
-  return p?\`${p.d}/${p.m}/${p.y}\`:'';
+  return p ? p.d+'/'+p.m+'/'+p.y : '';
 }
 function formatDateInput(value){
   const p=getDateParts(value);
-  return p?\`${p.y}-${p.m}-${p.d}\`:'';
+  return p ? p.y+'-'+p.m+'-'+p.d : '';
 }
 function formatDeclaracaoDate(value){
   const p=getDateParts(value);
-  return p?\`${p.d}/${p.m}/${p.y}\`:'';
+  return p ? p.d+'/'+p.m+'/'+p.y : '';
 }
 function gerarDeclaracao(detail){
   const nome=(detail.nome_completo||detail.razao_social||detail.nome||'').toUpperCase();
