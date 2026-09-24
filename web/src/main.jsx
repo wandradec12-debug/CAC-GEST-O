@@ -5,40 +5,30 @@ const API=import.meta.env.VITE_API_URL||'http://localhost:3001';
 const empty={codigo:'',nome_completo:'',cpf_cnpj:'',nascimento:'',naturalidade:'',filiacao_pai:'',filiacao_mae:'',estado_civil:'',rg:'',rg_orgao:'',tipo_cliente:'Pessoa Física',telefone:'',whatsapp:'',email:'',cep:'',endereco:'',numero:'',complemento:'',bairro:'',cidade:'',estado:'',origem_cadastro:'',responsavel:'',status:'ativo',categoria_cac:'',cr_numero:'',cr_emissao:'',cr_validade:'',cr_situacao:'',cr_orgao:'',observacoes:''};
 function F({label,name,type='text',required=false,form,setForm}){return <label><span>{label}{required?' *':''}</span><input type={type} value={form[name]||''} required={required} onChange={e=>setForm(prev=>({...prev,[name]:e.target.value}))}/></label>}
 
+function getDateParts(value){
+  if(value===null||value===undefined||value==='')return null;
+  const raw=String(value).trim().split('T')[0];
+  const iso=raw.split('-');
+  if(iso.length===3&&iso[0].length===4&&iso[1].length===2&&iso[2].length===2){
+    return {y:iso[0],m:iso[1],d:iso[2]};
+  }
+  const br=raw.split('/');
+  if(br.length===3&&br[0].length===2&&br[1].length===2&&br[2].length===4){
+    return {y:br[2],m:br[1],d:br[0]};
+  }
+  return null;
+}
 function formatDateBR(value){
-  if(!value)return '';
-  const raw=String(value).trim();
-  const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(iso)return `${iso[3]}/${iso[2]}/${iso[1]}`;
-  const br=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(br)return raw;
-  return '';
+  const p=getDateParts(value);
+  return p?\`${p.d}/${p.m}/${p.y}\`:'';
 }
 function formatDateInput(value){
-  if(!value)return '';
-  const raw=String(value).trim();
-  const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(iso)return `${iso[1]}-${iso[2]}-${iso[3]}`;
-  const br=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  return br ? `${br[3]}-${br[2]}-${br[1]}` : '';
+  const p=getDateParts(value);
+  return p?\`${p.y}-${p.m}-${p.d}\`:'';
 }
 function formatDeclaracaoDate(value){
-  if(value===null||value===undefined||value==='')return '';
-  if(value instanceof Date && !Number.isNaN(value.getTime())){
-    const d=String(value.getDate()).padStart(2,'0');
-    const m=String(value.getMonth()+1).padStart(2,'0');
-    const y=String(value.getFullYear());
-    return `${d}/${m}/${y}`;
-  }
-  const raw=String(value).trim();
-  let m=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})(?:T.*)?$/);
-  if(m)return `${m[3]}/${m[2]}/${m[1]}`;
-  m=raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
-  if(m)return raw;
-  return '';
-}
-function getNascimento(detail){
-  return formatDeclaracaoDate(detail?.nascimento ?? detail?.data_nascimento ?? detail?.dataNascimento);
+  const p=getDateParts(value);
+  return p?\`${p.d}/${p.m}/${p.y}\`:'';
 }
 function gerarDeclaracao(detail){
   const nome=(detail.nome_completo||detail.razao_social||detail.nome||'').toUpperCase();
