@@ -50,6 +50,7 @@ function imprimirDeclaracao(){
   win.focus();
   setTimeout(()=>win.print(),300);
 }
+const imprimirDeclaracao=()=>{window.print()};
 function App(){const[token,setToken]=useState(localStorage.getItem('token'));const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[dash,setDash]=useState(null);const[clientes,setClientes]=useState([]);const[show,setShow]=useState(false);const[detail,setDetail]=useState(null);const[form,setForm]=useState(empty);const[editing,setEditing]=useState(false);const[erro,setErro]=useState('');const[ok,setOk]=useState('');
 const [declaracao,setDeclaracao]=useState(null);
 const login=async e=>{e.preventDefault();setErro('');try{const r=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});const d=await r.json();if(!r.ok)throw new Error(d.error);localStorage.setItem('token',d.token);setToken(d.token)}catch(x){setErro(x.message)}};
