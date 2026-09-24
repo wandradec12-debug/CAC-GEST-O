@@ -16,11 +16,11 @@ const roles=(...allowed)=>(req,res,next)=>allowed.includes(req.user.role)?next()
 const parseDateParts=(value)=>{
   if(value===null||value===undefined||value==='')return null;
   const raw=String(value).trim().split('T')[0];
-  let m=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  let m=raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(m)return {y:Number(m[1]),m:Number(m[2]),d:Number(m[3])};
-  m=raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+  m=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if(m)return {y:Number(m[3]),m:Number(m[2]),d:Number(m[1])};
-  m=raw.match(/^(\\d{2})-(\\d{2})-(\\d{4})$/);
+  m=raw.match(/^(\d{2})-(\d{2})-(\d{4})$/);
   if(m)return {y:Number(m[3]),m:Number(m[2]),d:Number(m[1])};
   return null;
 };
