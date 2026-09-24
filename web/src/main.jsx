@@ -26,6 +26,9 @@ function formatDateInput(value){
   const p=getDateParts(value);
   return p ? p.y+'-'+p.m+'-'+p.d : '';
 }
+function getNascimento(detail){
+  return formatDeclaracaoDate(detail?.nascimento ?? detail?.data_nascimento ?? detail?.dataNascimento);
+}
 function formatDeclaracaoDate(value){
   const p=getDateParts(value);
   return p ? p.d+'/'+p.m+'/'+p.y : '';
