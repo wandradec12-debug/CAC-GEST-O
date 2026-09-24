@@ -1,1 +1,1 @@
-{"name":"cac-gestao-web","private":true,"scripts":{"build":"vite build","start":"vite preview --host 0.0.0.0 --port $PORT"},"dependencies":{"@vitejs/plugin-react":"latest","vite":"latest","react":"latest","react-dom":"latest"},"devDependencies":{}}
+{"name":"cac-gestao-web","private":true,"type":"module","scripts":{"build":"vite build","start":"vite preview --host 0.0.0.0 --port $PORT"},"dependencies":{"@vitejs/plugin-react":"latest","vite":"latest","react":"latest","react-dom":"latest"},"devDependencies":{}}
