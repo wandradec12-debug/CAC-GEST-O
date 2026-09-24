@@ -23,12 +23,13 @@ function formatDateInput(value){
   return br ? `${br[3]}-${br[2]}-${br[1]}` : '';
 }
 function formatDeclaracaoDate(value){
-  if(value===null||value===undefined)return '';
+  if(value===null||value===undefined||value==='')return '';
   const raw=String(value).trim();
-  if(/^\\d{2}\\/\\d{2}\\/\\d{4}$/.test(raw))return raw;
-  const iso=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
-  if(iso)return iso[3]+'/'+iso[2]+'/'+iso[1];
-  return raw;
+  let m=raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
+  if(m)return `${m[3]}/${m[2]}/${m[1]}`;
+  m=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m)return raw;
+  return '';
 }
 function gerarDeclaracao(detail){
   const nome=(detail.nome_completo||detail.razao_social||detail.nome||'').toUpperCase();
