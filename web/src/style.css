@@ -152,20 +152,22 @@ label span{display:block;font-size:12px;font-weight:600;color:#aeb5b8;margin-bot
 .declarationFormGrid{margin-top:20px}
 .declarationPaper{
   background:#fff;color:#000;font-family:"Times New Roman",serif;font-size:16px;line-height:1.55;
-  padding:45px 55px;
+  width:210mm;min-height:297mm;box-sizing:border-box;margin:0 auto;padding:24mm 22mm;
+  position:relative;
 }
 .declarationPaper h1{text-align:center;font-size:17px;margin:0 0 36px;font-weight:700}
 .declarationPaper p{margin:0 0 18px;text-align:justify}
 .declarationPaper .art{margin-top:30px}
 .declarationPaper .validade{margin-top:28px}
 .declarationPaper .local{margin-top:28px}
-.declarationPaper .assinatura{text-align:center;margin-top:42px}
-.declarationPaper .cpf{text-align:center;margin-top:4px}
-.titularAssinatura{text-align:center;margin-top:70px;line-height:1.4}
+.signatureBlock{text-align:center;margin:48px auto 0;width:75%;line-height:1.4}
+.signatureLine{border-top:1px solid #111;width:100%;margin-bottom:8px}
+.signatureBlock .cpf{margin-top:2px}
+.titularSignature{margin-top:62px}
 .titularData{text-align:center;font-style:italic;margin-top:30px}
 .dsaValidade{margin-top:28px!important}
 .dsaLocal{text-align:center;font-style:italic;margin-top:28px!important}
-.dsaAssinatura{text-align:center;margin-top:72px!important;line-height:1.4}
+.dsaAssinatura{margin-top:72px!important;line-height:1.4}
 .declarationInlineMenu{
   margin-top:16px;padding:16px;background:#111619;border:1px solid var(--gold-soft);
   border-radius:14px;box-shadow:0 8px 24px #0005;
@@ -198,7 +200,7 @@ label span{display:block;font-size:12px;font-weight:600;color:#aeb5b8;margin-bot
     width:100%!important;max-width:none!important;max-height:none!important;overflow:visible!important;
     background:#fff!important;box-shadow:none!important;border-radius:0!important;padding:0!important;margin:0!important
   }
-  .declarationPaper{display:block!important;width:100%!important;padding:55px 60px!important;min-height:100vh!important;overflow:visible!important}
+  .declarationPaper{display:block!important;width:210mm!important;height:297mm!important;min-height:297mm!important;padding:24mm 22mm!important;margin:0 auto!important;overflow:visible!important;box-sizing:border-box!important}
 }
 /* visual personalization: light shooting-club / CAC aesthetic, functionality unchanged */
 
