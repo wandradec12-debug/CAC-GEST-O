@@ -4,23 +4,7 @@ ALTER TABLE clientes ADD COLUMN IF NOT EXISTS codigo TEXT;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS razao_social TEXT;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nome_fantasia TEXT;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nome_completo TEXT;
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nascimento DATE;
-DO $
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.columns
-    WHERE table_schema='public' AND table_name='clientes' AND column_name='nascimento'
-      AND data_type <> 'text'
-  ) THEN
-    ALTER TABLE clientes
-      ALTER COLUMN nascimento TYPE TEXT
-      USING CASE
-        WHEN nascimento IS NULL THEN NULL
-        ELSE to_char(nascimento, 'DD/MM/YYYY')
-      END;
-  END IF;
-END $;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS nascimento TEXT;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS naturalidade TEXT;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS filiacao_pai TEXT;
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS filiacao_mae TEXT;
