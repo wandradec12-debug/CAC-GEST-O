@@ -11,7 +11,7 @@ const pool = new Pool({
     : false
 });
 
-const email = 'admin@cac.local';
+const email = process.env.ADMIN_EMAIL || 'admin@cac.local';
 const password = process.env.ADMIN_PASSWORD;
 if(!password) throw new Error('ADMIN_PASSWORD is required');
 
