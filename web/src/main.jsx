@@ -24,17 +24,26 @@ function formatDateInput(value){
 }
 function formatDeclaracaoDate(value){
   if(value===null||value===undefined||value==='')return '';
+  if(value instanceof Date && !Number.isNaN(value.getTime())){
+    const d=String(value.getDate()).padStart(2,'0');
+    const m=String(value.getMonth()+1).padStart(2,'0');
+    const y=String(value.getFullYear());
+    return `${d}/${m}/${y}`;
+  }
   const raw=String(value).trim();
-  let m=raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:T.*)?$/);
+  let m=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})(?:T.*)?$/);
   if(m)return `${m[3]}/${m[2]}/${m[1]}`;
-  m=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  m=raw.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
   if(m)return raw;
   return '';
+}
+function getNascimento(detail){
+  return formatDeclaracaoDate(detail?.nascimento ?? detail?.data_nascimento ?? detail?.dataNascimento);
 }
 function gerarDeclaracao(detail){
   const nome=(detail.nome_completo||detail.razao_social||detail.nome||'').toUpperCase();
   const naturalidade=(detail.naturalidade||'').toUpperCase();
-  const nascimento=formatDeclaracaoDate(detail.nascimento||detail.data_nascimento||detail.dataNascimento||detail.data_de_nascimento);
+  const nascimento=getNascimento(detail);
   const pai=(detail.filiacao_pai||'').toUpperCase();
   const mae=(detail.filiacao_mae||'').toUpperCase();
   const estadoCivil=(detail.estado_civil||'').toUpperCase();
