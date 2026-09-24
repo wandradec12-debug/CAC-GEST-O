@@ -11,7 +11,7 @@ try{
   if(col.rowCount && col.rows[0].data_type!=='text'){
     await pool.query("ALTER TABLE clientes ALTER COLUMN nascimento TYPE TEXT USING CASE WHEN nascimento IS NULL THEN NULL ELSE to_char(nascimento,'DD/MM/YYYY') END");
   }
-  await pool.query("UPDATE clientes SET nascimento=CASE WHEN nascimento ~ '^\\\\d{4}-\\\\d{2}-\\\\d{2}(T.*)?$' THEN to_char((substring(nascimento from '^(\\\\d{4}-\\\\d{2}-\\\\d{2})'))::date,'DD/MM/YYYY') WHEN nascimento ~ '^\\\\d{2}-\\\\d{2}-\\\\d{4}$' THEN to_char(to_date(nascimento,'DD-MM-YYYY'),'DD/MM/YYYY') WHEN nascimento ~ '^\\\\d{4}-\\\\d{2}-\\\\d{2}$' THEN to_char(to_date(nascimento,'YYYY-MM-DD'),'DD/MM/YYYY') WHEN nascimento ~ '^\\\\d{2}/\\\\d{2}/\\\\d{4}$' THEN nascimento ELSE NULL END WHERE nascimento IS NOT NULL");
+  await pool.query("UPDATE clientes SET nascimento=CASE WHEN nascimento ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}(T.*)?$' THEN to_char((substring(nascimento from '^([0-9]{4}-[0-9]{2}-[0-9]{2})'))::date,'DD/MM/YYYY') WHEN nascimento ~ '^[0-9]{2}-[0-9]{2}-[0-9]{4}$' THEN to_char(to_date(nascimento,'DD-MM-YYYY'),'DD/MM/YYYY') WHEN nascimento ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN to_char(to_date(nascimento,'YYYY-MM-DD'),'DD/MM/YYYY') WHEN nascimento ~ '^[0-9]{2}/[0-9]{2}/[0-9]{4}$' THEN nascimento ELSE NULL END WHERE nascimento IS NOT NULL");
   await pool.end();
   console.log('Migration complete');
 }catch(err){
