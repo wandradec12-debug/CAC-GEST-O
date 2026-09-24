@@ -22,10 +22,18 @@ function formatDateInput(value){
   const br=raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   return br ? `${br[3]}-${br[2]}-${br[1]}` : '';
 }
+function formatDeclaracaoDate(value){
+  if(value===null||value===undefined)return '';
+  const raw=String(value).trim();
+  if(/^\\d{2}\\/\\d{2}\\/\\d{4}$/.test(raw))return raw;
+  const iso=raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/);
+  if(iso)return iso[3]+'/'+iso[2]+'/'+iso[1];
+  return raw;
+}
 function gerarDeclaracao(detail){
   const nome=(detail.nome_completo||detail.razao_social||detail.nome||'').toUpperCase();
   const naturalidade=(detail.naturalidade||'').toUpperCase();
-  const nascimento=formatDateBR(detail.nascimento);
+  const nascimento=formatDeclaracaoDate(detail.nascimento);
   const pai=(detail.filiacao_pai||'').toUpperCase();
   const mae=(detail.filiacao_mae||'').toUpperCase();
   const estadoCivil=(detail.estado_civil||'').toUpperCase();
