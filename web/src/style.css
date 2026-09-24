@@ -201,3 +201,12 @@ label span{display:block;font-size:12px;font-weight:600;color:#aeb5b8;margin-bot
   .declarationPaper{display:block!important;width:100%!important;padding:55px 60px!important;min-height:100vh!important;overflow:visible!important}
 }
 /* visual personalization: light shooting-club / CAC aesthetic, functionality unchanged */
+
+.brandBlock{display:flex;align-items:center;gap:14px}
+.brandBlock>div:last-child{padding-left:0!important}
+.brandMark{width:40px;height:40px;border:1px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:var(--gold2);font-size:27px;box-shadow:0 0 0 6px #c49a4508}
+.headerMeta{display:flex;align-items:center;gap:14px}
+.rangeBadge{font-size:10px;letter-spacing:.12em;color:var(--gold2);border:1px solid #c49a4550;border-radius:20px;padding:7px 11px;background:#c49a4509}
+.sectionKicker{display:block;font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:700;margin-bottom:4px}
+.toolbar{align-items:flex-end}
+@media(max-width:650px){.headerMeta{gap:7px}.rangeBadge{display:none}.brandMark{width:34px;height:34px}.brandBlock{gap:10px}}
