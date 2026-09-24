@@ -34,7 +34,8 @@ function formatDeclaracaoDate(value){
   return p ? p.d+'/'+p.m+'/'+p.y : '';
 }
 function dataEmissaoAtual(){const d=new Date();return String(d.getDate()).padStart(2,'0')+' de '+['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][d.getMonth()]+' de '+d.getFullYear()}
-function dataValidadeAtual(){const d=new Date();d.setMonth(d.getMonth()+3);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}\nfunction nomeCliente(d){return String(d?.nome_completo||d?.razao_social||d?.nome||'').toUpperCase()}
+function dataValidadeAtual(){const d=new Date();d.setMonth(d.getMonth()+3);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()}
+function nomeCliente(d){return String(d?.nome_completo||d?.razao_social||d?.nome||'').toUpperCase()}
 function enderecoCliente(d){return [d?.endereco,d?.numero,d?.complemento,d?.bairro].filter(Boolean).join(', ')}
 function cidadeEstadoCliente(d){return [d?.cidade,d?.estado].filter(Boolean).join(' - ')}
 function imprimirDeclaracao(){
