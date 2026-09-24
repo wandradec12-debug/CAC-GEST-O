@@ -1,10 +1,28 @@
-import 'dotenv/config'; import express from 'express'; import cors from 'cors'; import jwt from 'jsonwebtoken'; import bcrypt from 'bcryptjs'; import pg from 'pg'; const {Pool}=pg; const app=express(); const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?.includes('railway')?{rejectUnauthorized:false}:false}); app.use(cors({origin:process.env.CORS_ORIGIN||'*'})); app.use(express.json()); const secret=process.env.JWT_SECRET; if(!process.env.DATABASE_URL||!secret) throw new Error('DATABASE_URL and JWT_SECRET are required');
-const auth=(req,res,next)=>{try{const h=req.headers.authorization||''; if(!h.startsWith('Bearer ')) return res.status(401).json({error:'Não autenticado'}); req.user=jwt.verify(h.slice(7),secret); next()}catch{return res.status(401).json({error:'Token inválido'})}};
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import pg from 'pg';
+const {Pool}=pg;
+const app=express();
+const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?.includes('railway')?{rejectUnauthorized:false}:false});
+app.use(cors({origin:process.env.CORS_ORIGIN||'*'}));
+app.use(express.json());
+const secret=process.env.JWT_SECRET;
+if(!process.env.DATABASE_URL||!secret) throw new Error('DATABASE_URL and JWT_SECRET are required');
+const auth=(req,res,next)=>{try{const h=req.headers.authorization||'';if(!h.startsWith('Bearer '))return res.status(401).json({error:'Não autenticado'});req.user=jwt.verify(h.slice(7),secret);next()}catch{return res.status(401).json({error:'Token inválido'})}};
 const roles=(...allowed)=>(req,res,next)=>allowed.includes(req.user.role)?next():res.status(403).json({error:'Sem permissão'});
 app.get('/api/health',async(req,res)=>{try{await pool.query('SELECT 1');res.json({ok:true,service:'cac-gestao-api'})}catch(e){res.status(500).json({ok:false,error:e.message})}});
-app.post('/api/auth/login',async(req,res)=>{const {email,password}=req.body; const r=await pool.query('SELECT id,email,password_hash,role FROM users WHERE email=$1',[email]); if(!r.rowCount||!(await bcrypt.compare(password,r.rows[0].password_hash))) return res.status(401).json({error:'E-mail ou senha inválidos'}); const u=r.rows[0]; const token=jwt.sign({id:u.id,email:u.email,role:u.role},secret,{expiresIn:'12h'}); res.json({token,user:{id:u.id,email:u.email,role:u.role}})});
+app.post('/api/auth/login',async(req,res)=>{const {email,password}=req.body;const r=await pool.query('SELECT id,email,password_hash,role FROM users WHERE email=$1',[email]);if(!r.rowCount||!(await bcrypt.compare(password,r.rows[0].password_hash)))return res.status(401).json({error:'E-mail ou senha inválidos'});const u=r.rows[0];res.json({token:jwt.sign({id:u.id,email:u.email,role:u.role},secret,{expiresIn:'12h'}),user:{id:u.id,email:u.email,role:u.role}})});
 app.get('/api/dashboard',auth,async(req,res)=>{const [c,d,p,u]=await Promise.all([pool.query('SELECT count(*)::int n FROM clientes'),pool.query('SELECT count(*)::int n FROM documentos'),pool.query('SELECT count(*)::int n FROM compras'),pool.query('SELECT count(*)::int n FROM users')]);res.json({clientes:c.rows[0].n,documentos:d.rows[0].n,compras:p.rows[0].n,usuarios:u.rows[0].n})});
 app.get('/api/clientes',auth,async(req,res)=>{const r=await pool.query('SELECT * FROM clientes ORDER BY id DESC');res.json(r.rows)});
-app.post('/api/clientes',auth,roles('administrador','gerente','consultor'),async(req,res)=>{const {nome,cpf_cnpj,email,telefone,status='ativo'}=req.body; const r=await pool.query('INSERT INTO clientes(nome,cpf_cnpj,email,telefone,status) VALUES($1,$2,$3,$4,$5) RETURNING *',[nome,cpf_cnpj||null,email||null,telefone||null,status]); await pool.query('INSERT INTO audit_logs(user_id,acao,entidade,entidade_id) VALUES($1,$2,$3,$4)',[req.user.id,'criar','cliente',r.rows[0].id]); res.status(201).json(r.rows[0])});
-app.get('/api/clientes/:id',auth,async(req,res)=>{const id=Number(req.params.id); const c=await pool.query('SELECT * FROM clientes WHERE id=$1',[id]); if(!c.rowCount)return res.status(404).json({error:'Cliente não encontrado'}); const [d,p]=await Promise.all([pool.query('SELECT * FROM documentos WHERE cliente_id=$1 ORDER BY validade',[id]),pool.query('SELECT * FROM compras WHERE cliente_id=$1 ORDER BY data_compra DESC',[id])]); res.json({...c.rows[0],documentos:d.rows,compras:p.rows})});
+app.post('/api/clientes',auth,roles('administrador','gerente','consultor'),async(req,res)=>{try{
+const b=req.body; if(!b.nome&&!b.nome_completo&&!b.razao_social)return res.status(400).json({error:'Nome do cliente é obrigatório'});
+const q=`INSERT INTO clientes(codigo,nome,razao_social,nome_fantasia,nome_completo,cpf_cnpj,nascimento,tipo_cliente,email,telefone,whatsapp,cep,endereco,numero,complemento,bairro,cidade,estado,origem_cadastro,responsavel,status,categoria_cac,cr_numero,cr_emissao,cr_validade,cr_situacao,cr_orgao,observacoes)
+VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28) RETURNING *`;
+const v=[b.codigo||null,b.nome||b.nome_completo||b.razao_social,b.razao_social||null,b.nome_fantasia||null,b.nome_completo||null,b.cpf_cnpj||null,b.nascimento||null,b.tipo_cliente||null,b.email||null,b.telefone||null,b.whatsapp||null,b.cep||null,b.endereco||null,b.numero||null,b.complemento||null,b.bairro||null,b.cidade||null,b.estado||null,b.origem_cadastro||null,b.responsavel||null,b.status||'ativo',b.categoria_cac||null,b.cr_numero||null,b.cr_emissao||null,b.cr_validade||null,b.cr_situacao||null,b.cr_orgao||null,b.observacoes||null];
+const r=await pool.query(q,v);await pool.query('INSERT INTO audit_logs(user_id,acao,entidade,entidade_id,detalhes) VALUES($1,$2,$3,$4,$5)',[req.user.id,'criar','cliente',r.rows[0].id,{nome:r.rows[0].nome}]);res.status(201).json(r.rows[0]);
+}catch(e){if(e.code==='23505')return res.status(409).json({error:'CPF/CNPJ já cadastrado'});res.status(500).json({error:'Erro ao cadastrar cliente'})}});
+app.get('/api/clientes/:id',auth,async(req,res)=>{const id=Number(req.params.id);const c=await pool.query('SELECT * FROM clientes WHERE id=$1',[id]);if(!c.rowCount)return res.status(404).json({error:'Cliente não encontrado'});const[d,p]=await Promise.all([pool.query('SELECT * FROM documentos WHERE cliente_id=$1 ORDER BY validade',[id]),pool.query('SELECT * FROM compras WHERE cliente_id=$1 ORDER BY data_compra DESC',[id])]);res.json({...c.rows[0],documentos:d.rows,compras:p.rows})});
 app.listen(process.env.PORT||3001,'0.0.0.0',()=>console.log('CAC GESTAO API running'));
