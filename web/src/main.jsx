@@ -64,8 +64,9 @@ async function imprimirDeclaracao(declaracaoAtual){
       html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
       callback:(pdf)=>{
         document.body.removeChild(clone);
-        const nome=nomeCliente(declaracaoAtual?.detail)||'cliente';
-        const tipo=declaracaoAtual?.tipo||'declaracao';
+        const dadosPdf=declaracaoAtual||{};
+        const nome=nomeCliente(dadosPdf.detail)||'cliente';
+        const tipo=dadosPdf.tipo||'declaracao';
         pdf.save(tipo+'-'+nome.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf');
       }
     });
