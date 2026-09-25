@@ -42,45 +42,63 @@ function enderecoGuardaCliente(d){return [d?.endereco,d?.numero,d?.complemento].
 async function imprimirDeclaracao(declaracaoAtual){
   const paper=document.querySelector('.printDeclaration');
   if(!paper){alert('Não foi possível preparar a declaração em PDF.');return}
-  let clone=null;
   try{
     const {jsPDF}=await import('jspdf');
-    const html2canvas= (await import('html2canvas')).default;
     const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    clone=paper.cloneNode(true);
-    clone.style.cssText += ';position:fixed!important;left:0!important;top:0!important;width:794px!important;min-width:794px!important;height:auto!important;min-height:1123px!important;margin:0!important;padding:91px 83px!important;box-sizing:border-box!important;background:#fff!important;color:#000!important;display:block!important;visibility:visible!important;opacity:1!important;z-index:2147483647!important;overflow:visible!important;';
-    clone.querySelectorAll('.noPrint').forEach(el=>el.remove());
-    document.body.appendChild(clone);
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    const canvas=await html2canvas(clone,{
-      scale:2,
-      useCORS:true,
-      allowTaint:true,
-      backgroundColor:'#ffffff',
-      logging:false,
-      width:794,
-      windowWidth:794,
-      scrollX:0,
-      scrollY:0
+    const pageW=doc.internal.pageSize.getWidth();
+    const pageH=doc.internal.pageSize.getHeight();
+    const marginX=22;
+    const marginTop=24;
+    const marginBottom=20;
+    const maxW=pageW-(marginX*2);
+    let y=marginTop;
+    const lineH=7;
+    const addLines=(lines,size=12,bold=false,align='left')=>{
+      doc.setFont('times',bold?'bold':'normal');
+      doc.setFontSize(size);
+      lines.forEach(line=>{
+        if(y>pageH-marginBottom){doc.addPage();y=marginTop;doc.setFont('times',bold?'bold':'normal');doc.setFontSize(size)}
+        if(align==='center') doc.text(line,pageW/2,y,{align:'center'});
+        else doc.text(line,marginX,y);
+        y+=lineH;
+      });
+    };
+    const addWrapped=(text,size=12,bold=false,spacing=6)=>{
+      const lines=doc.splitTextToSize(String(text||''),maxW);
+      addLines(lines,size,bold);
+      y+=spacing;
+    };
+    const title=paper.querySelector('h1')?.innerText?.trim()||'DECLARAÇÃO';
+    addLines(doc.splitTextToSize(title,maxW),13,true,'center');
+    y+=10;
+    Array.from(paper.querySelectorAll('p')).forEach(p=>{
+      const text=p.innerText.trim();
+      if(!text)return;
+      const cls=p.className||'';
+      if(cls.includes('local')){y+=4;addLines([text],12,false,'center');y+=4;return}
+      if(cls.includes('validade')){y+=3;addWrapped(text,12,false,6);return}
+      addWrapped(text,12,false,5);
     });
-    document.body.removeChild(clone);
-    clone=null;
-    const imgData=canvas.toDataURL('image/jpeg',0.95);
-    const pageW=210, pageH=297;
-    const imgW=pageW;
-    const imgH=canvas.height*pageW/canvas.width;
-    if(imgH<=pageH){
-      doc.addImage(imgData,'JPEG',0,0,imgW,imgH);
-    }else{
-      const ratio=pageH/imgH;
-      doc.addImage(imgData,'JPEG',(pageW-pageW*ratio)/2,0,pageW*ratio,pageH);
+    const sig=paper.querySelector('.signatureBlock');
+    if(sig){
+      y=Math.max(y+8,185);
+      if(y>pageH-45){doc.addPage();y=marginTop+20}
+      const sigX=pageW*0.125;
+      const sigW=pageW*0.75;
+      doc.setDrawColor(20,20,20);
+      doc.line(sigX,y,sigX+sigW,y);
+      y+=7;
+      const name=sig.querySelector('strong')?.innerText?.trim()||'';
+      addLines([name],12,true,'center');
+      const cpf=sig.querySelector('.cpf')?.innerText?.trim()||'';
+      if(cpf)addLines([cpf],11,false,'center');
     }
     const dadosPdf=declaracaoAtual||{};
     const nome=nomeCliente(dadosPdf.detail)||'cliente';
     const tipo=dadosPdf.tipo||'declaracao';
-    doc.save(tipo+'-'+nome.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf');
+    const arquivo=tipo+'-'+nome.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf';
+    doc.save(arquivo);
   }catch(e){
-    if(clone&&clone.parentNode)clone.parentNode.removeChild(clone);
     alert('Não foi possível gerar o PDF automaticamente. Erro: '+(e?.message||e));
   }
 }
