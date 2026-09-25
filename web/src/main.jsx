@@ -38,10 +38,41 @@ function dataValidadeAtual(){const d=new Date();d.setMonth(d.getMonth()+3);retur
 function nomeCliente(d){return String(d?.nome_completo||d?.razao_social||d?.nome||'').toUpperCase()}
 function enderecoCliente(d){return [d?.endereco,d?.numero,d?.complemento,d?.bairro].filter(Boolean).join(', ')}
 function cidadeEstadoCliente(d){return [d?.cidade,d?.estado].filter(Boolean).join(' - ')}
-function imprimirDeclaracao(){
+async function imprimirDeclaracao(){
   const paper=document.querySelector('.printDeclaration');
-  if(!paper){alert('Não foi possível preparar a declaração para impressão.');return}
-  window.print();
+  if(!paper){alert('Não foi possível preparar a declaração em PDF.');return}
+  try{
+    const {jsPDF}=await import('jspdf');
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const clone=paper.cloneNode(true);
+    clone.style.width='210mm';
+    clone.style.height='297mm';
+    clone.style.minHeight='297mm';
+    clone.style.margin='0';
+    clone.style.padding='24mm 22mm';
+    clone.style.boxSizing='border-box';
+    clone.style.position='fixed';
+    clone.style.left='-10000px';
+    clone.style.top='0';
+    clone.style.background='#fff';
+    clone.style.color='#000';
+    document.body.appendChild(clone);
+    await doc.html(clone,{
+      x:0,y:0,width:210,windowWidth:794,
+      margin:[0,0,0,0],
+      autoPaging:'text',
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
+      callback:(pdf)=>{
+        document.body.removeChild(clone);
+        const nome=nomeCliente(declaracao?.detail)||'cliente';
+        const tipo=declaracao?.tipo||'declaracao';
+        pdf.save(tipo+'-'+nome.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf');
+      }
+    });
+  }catch(e){
+    const paper=document.querySelector('.printDeclaration');
+    if(paper)alert('Não foi possível gerar o PDF automaticamente. Erro: '+(e?.message||e));
+  }
 }
 function App(){const[token,setToken]=useState(localStorage.getItem('token'));const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[dash,setDash]=useState(null);const[clientes,setClientes]=useState([]);const[show,setShow]=useState(false);const[detail,setDetail]=useState(null);const[form,setForm]=useState(empty);const[editing,setEditing]=useState(false);const[erro,setErro]=useState('');const[ok,setOk]=useState('');const[usuario,setUsuario]=useState(null);const[usuarios,setUsuarios]=useState([]);const[showUsuarios,setShowUsuarios]=useState(false);const[usuarioForm,setUsuarioForm]=useState({email:'',senha:'',role:'operacional'});const[senhaForm,setSenhaForm]=useState({atual:'',nova:''});const[senhaUsuarioId,setSenhaUsuarioId]=useState(null);
 const [declaracao,setDeclaracao]=useState(null);
