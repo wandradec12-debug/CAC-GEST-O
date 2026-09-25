@@ -41,40 +41,46 @@ function cidadeEstadoCliente(d){return [d?.cidade,d?.estado].filter(Boolean).joi
 async function imprimirDeclaracao(declaracaoAtual){
   const paper=document.querySelector('.printDeclaration');
   if(!paper){alert('Não foi possível preparar a declaração em PDF.');return}
+  let clone=null;
   try{
     const {jsPDF}=await import('jspdf');
+    const html2canvas= (await import('html2canvas')).default;
     const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-    const clone=paper.cloneNode(true);
-    clone.style.width='210mm';
-    clone.style.height='297mm';
-    clone.style.minHeight='297mm';
-    clone.style.margin='0';
-    clone.style.padding='24mm 22mm';
-    clone.style.boxSizing='border-box';
-    clone.style.position='fixed';
-    clone.style.left='-10000px';
-    clone.style.top='0';
-    clone.style.background='#fff';
-    clone.style.color='#000';
+    clone=paper.cloneNode(true);
+    clone.style.cssText += ';position:fixed!important;left:0!important;top:0!important;width:794px!important;min-width:794px!important;height:auto!important;min-height:1123px!important;margin:0!important;padding:91px 83px!important;box-sizing:border-box!important;background:#fff!important;color:#000!important;display:block!important;visibility:visible!important;opacity:1!important;z-index:2147483647!important;overflow:visible!important;';
+    clone.querySelectorAll('.noPrint').forEach(el=>el.remove());
     document.body.appendChild(clone);
-    await doc.html(clone,{
-      x:0,y:0,width:210,windowWidth:794,
-      margin:[0,0,0,0],
-      autoPaging:'text',
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
-      callback:(pdf)=>{
-        document.body.removeChild(clone);
-        const dadosPdf=declaracaoAtual||{};
-        const nome=nomeCliente(dadosPdf.detail)||'cliente';
-        const tipo=dadosPdf.tipo||'declaracao';
-        pdf.save(tipo+'-'+nome.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf');
-      }
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const canvas=await html2canvas(clone,{
+      scale:2,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:'#ffffff',
+      logging:false,
+      width:794,
+      windowWidth:794,
+      scrollX:0,
+      scrollY:0
     });
+    document.body.removeChild(clone);
+    clone=null;
+    const imgData=canvas.toDataURL('image/jpeg',0.95);
+    const pageW=210, pageH=297;
+    const imgW=pageW;
+    const imgH=canvas.height*pageW/canvas.width;
+    if(imgH<=pageH){
+      doc.addImage(imgData,'JPEG',0,0,imgW,imgH);
+    }else{
+      const ratio=pageH/imgH;
+      doc.addImage(imgData,'JPEG',(pageW-pageW*ratio)/2,0,pageW*ratio,pageH);
+    }
+    const dadosPdf=declaracaoAtual||{};
+    const nome=nomeCliente(dadosPdf.detail)||'cliente';
+    const tipo=dadosPdf.tipo||'declaracao';
+    doc.save(tipo+'-'+nome.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.pdf');
   }catch(e){
-    const cloneAtual=document.querySelector('.printDeclaration[style*="-10000px"]');
-    if(cloneAtual)cloneAtual.remove();
-    const paper=document.querySelector('.printDeclaration');
-    if(paper)alert('Não foi possível gerar o PDF automaticamente. Erro: '+(e?.message||e));
+    if(clone&&clone.parentNode)clone.parentNode.removeChild(clone);
+    alert('Não foi possível gerar o PDF automaticamente. Erro: '+(e?.message||e));
   }
 }
 function App(){const[token,setToken]=useState(localStorage.getItem('token'));const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[dash,setDash]=useState(null);const[clientes,setClientes]=useState([]);const[show,setShow]=useState(false);const[detail,setDetail]=useState(null);const[form,setForm]=useState(empty);const[editing,setEditing]=useState(false);const[erro,setErro]=useState('');const[ok,setOk]=useState('');const[usuario,setUsuario]=useState(null);const[usuarios,setUsuarios]=useState([]);const[showUsuarios,setShowUsuarios]=useState(false);const[usuarioForm,setUsuarioForm]=useState({email:'',senha:'',role:'operacional'});const[senhaForm,setSenhaForm]=useState({atual:'',nova:''});const[senhaUsuarioId,setSenhaUsuarioId]=useState(null);
