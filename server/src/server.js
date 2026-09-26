@@ -1,17 +1,24 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import pg from 'pg';
 const {Pool}=pg;
 const app=express();
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:process.env.DATABASE_URL?.includes('railway')?{rejectUnauthorized:false}:false});
-app.use(cors({origin:process.env.CORS_ORIGIN||'*'}));
-app.use(express.json());
+const isProd=process.env.NODE_ENV==='production';
+const allowedOrigins=String(process.env.CORS_ORIGIN||'').split(',').map(v=>v.trim()).filter(Boolean);
+if(isProd&&!allowedOrigins.length) throw new Error('CORS_ORIGIN is required in production');
+app.use(helmet({contentSecurityPolicy:false}));
+app.use(cors({origin:(origin,cb)=>{if(!origin||!allowedOrigins.length||allowedOrigins.includes(origin))return cb(null,true);return cb(new Error('Origin not allowed by CORS'))}}));
+app.use(express.json({limit:'1mb'}));
+const loginLimiter=rateLimit({windowMs:15*60*1000,max:10,standardHeaders:'draft-7',legacyHeaders:false,message:{error:'Muitas tentativas de login. Tente novamente em alguns minutos.'}});
 const secret=process.env.JWT_SECRET;
 if(!process.env.DATABASE_URL||!secret) throw new Error('DATABASE_URL and JWT_SECRET are required');
-const auth=(req,res,next)=>{try{const h=req.headers.authorization||'';if(!h.startsWith('Bearer '))return res.status(401).json({error:'Não autenticado'});req.user=jwt.verify(h.slice(7),secret);next()}catch{return res.status(401).json({error:'Token inválido'})}};
+const auth=(req,res,next)=>{try{const h=req.headers.authorization||'';if(!h.startsWith('Bearer '))return res.status(401).json({error:'Não autenticado'});req.user=jwt.verify(h.slice(7),secret,{issuer:'cac-gestao',audience:'cac-gestao-web'});next()}catch{return res.status(401).json({error:'Token inválido'})}};
 const roles=(...allowed)=>(req,res,next)=>allowed.includes(req.user.role)?next():res.status(403).json({error:'Sem permissão'});
 const adminOnly=roles('administrador');
 const parseDateParts=(value)=>{
@@ -44,7 +51,7 @@ const formatDateBR=(value)=>{
 };
 const formatCliente=(cliente)=>{if(!cliente)return cliente;const rawNascimento=cliente.nascimento??cliente.data_nascimento??cliente.dataNascimento??cliente.data_de_nascimento??null;return {...cliente,nascimento:formatDateBR(rawNascimento),cr_emissao:formatDateBR(cliente.cr_emissao),cr_validade:formatDateBR(cliente.cr_validade)};};
 app.get('/api/health',async(req,res)=>{try{await pool.query('SELECT 1');res.json({ok:true,service:'cac-gestao-api'})}catch(e){res.status(500).json({ok:false,error:e.message})}});
-app.post('/api/auth/login',async(req,res)=>{const {email,password}=req.body;const r=await pool.query('SELECT id,email,password_hash,role,active FROM users WHERE lower(email)=lower($1)',[String(email||'').trim()]);if(!r.rowCount||!r.rows[0].active||!(await bcrypt.compare(password,r.rows[0].password_hash)))return res.status(401).json({error:'E-mail ou senha inválidos'});const u=r.rows[0];res.json({token:jwt.sign({id:u.id,email:u.email,role:u.role},secret,{expiresIn:'12h'}),user:{id:u.id,email:u.email,role:u.role}})});
+app.post('/api/auth/login',loginLimiter,async(req,res)=>{const {email,password}=req.body;const r=await pool.query('SELECT id,email,password_hash,role,active FROM users WHERE lower(email)=lower($1)',[String(email||'').trim()]);if(!r.rowCount||!r.rows[0].active||!(await bcrypt.compare(password,r.rows[0].password_hash)))return res.status(401).json({error:'E-mail ou senha inválidos'});const u=r.rows[0];res.json({token:jwt.sign({id:u.id,email:u.email,role:u.role},secret,{expiresIn:'12h',issuer:'cac-gestao',audience:'cac-gestao-web'}),user:{id:u.id,email:u.email,role:u.role}})});
 app.get('/api/auth/me',auth,async(req,res)=>{const r=await pool.query('SELECT id,email,role,active,created_at FROM users WHERE id=$1',[req.user.id]);if(!r.rowCount||!r.rows[0].active)return res.status(401).json({error:'Usuário inativo'});res.json({user:r.rows[0]})});
 app.put('/api/auth/senha',auth,async(req,res)=>{const {senha_atual,nova_senha}=req.body;if(!nova_senha||String(nova_senha).length<6)return res.status(400).json({error:'A nova senha deve ter pelo menos 6 caracteres'});const r=await pool.query('SELECT password_hash FROM users WHERE id=$1',[req.user.id]);if(!r.rowCount||!(await bcrypt.compare(String(senha_atual||''),r.rows[0].password_hash)))return res.status(400).json({error:'Senha atual incorreta'});const hash=await bcrypt.hash(String(nova_senha),10);await pool.query('UPDATE users SET password_hash=$1 WHERE id=$2',[hash,req.user.id]);res.json({ok:true,message:'Senha alterada com sucesso'});});
 app.get('/api/usuarios',auth,adminOnly,async(req,res)=>{const r=await pool.query('SELECT id,email,role,active,created_at FROM users ORDER BY id DESC');res.json(r.rows)});
