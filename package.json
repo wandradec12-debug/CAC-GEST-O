@@ -1,1 +1,1 @@
-{"name":"cac-gestao","private":true,"scripts":{"build":"npm --prefix server install && npm install --prefix web && npm run build --prefix web"}}
+{"name":"cac-gestao","private":true,"scripts":{"build":"npm --prefix server install && npm install --prefix web && npm run build --prefix web","start":"node server/src/server.js"}}
