@@ -40,8 +40,9 @@ function enderecoCliente(d){return [d?.endereco,d?.numero,d?.complemento,d?.bair
 function cidadeEstadoCliente(d){return [d?.cidade,d?.estado].filter(Boolean).join(' - ')}
 function enderecoGuardaCliente(d){return [d?.endereco,d?.numero,d?.complemento].filter(Boolean).join(', ')}
 async function imprimirDeclaracao(declaracaoAtual){
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const paper=document.querySelector('.printDeclaration');
-  if(!paper){alert('Não foi possível preparar a declaração em PDF.');return}
+  if(!paper || !paper.innerText.trim()){alert('Não foi possível preparar a declaração em PDF.');return}
   try{
     const {jsPDF}=await import('jspdf');
     const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
